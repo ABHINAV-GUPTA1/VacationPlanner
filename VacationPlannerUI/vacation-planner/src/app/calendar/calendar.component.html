@@ -1,0 +1,91 @@
+<h2>Vacation Calendar</h2>
+
+<div>
+  <label for="country-select">Select Country:</label>
+  <div *ngIf="loadingCountries">Loading countries...</div>
+  <div *ngIf="countryLoadError" class="error">{{ countryLoadError }}</div>
+
+  <select
+    *ngIf="!loadingCountries && !countryLoadError"
+    id="country-select"
+    [(ngModel)]="selectedCountry"
+    (change)="loadCalendarData()"
+  >
+    <option *ngFor="let country of countries" [value]="country.countryCode">
+      {{ country.name }}
+    </option>
+  </select>
+</div>
+
+<div>
+  <button (click)="setView('month')" [class.active]="view === 'month'">
+    Month
+  </button>
+  <button (click)="setView('quarter')" [class.active]="view === 'quarter'">
+    Quarter
+  </button>
+</div>
+
+<div *ngIf="view === 'month'">
+  <h3>{{ currentDate | date: 'MMMM yyyy' }}</h3>
+  <button (click)="goToPrevious()">Previous</button>
+  <button (click)="goToNext()">Next</button>
+
+  <div class="calendar">
+    <div class="day-header">Mon</div>
+    <div class="day-header">Tue</div>
+    <div class="day-header">Wed</div>
+    <div class="day-header">Thu</div>
+    <div class="day-header">Fri</div>
+    <div class="day-header">Sat</div>
+    <div class="day-header">Sun</div>
+    <div
+      *ngFor="let day of daysInMonth"
+      class="day"
+      [ngStyle]="{ 'background-color': getWeekColor(day) }"
+    >
+      <span *ngIf="day.getMonth() === currentDate.getMonth()">{{
+        day.getDate()
+      }}</span>
+      <span
+        *ngIf="day.getMonth() !== currentDate.getMonth()"
+        style="color: lightgray"
+        >{{ day.getDate() }}</span
+      >
+    </div>
+  </div>
+</div>
+
+<div *ngIf="view === 'quarter'">
+  <h3>
+    Quarter {{ selectedQuarter }}, {{ selectedYear }}
+  </h3>
+  <div>
+    <button
+      *ngFor="let quarter of quarters"
+      (click)="selectQuarter(quarter)"
+      [class.active]="selectedQuarter === quarter"
+    >
+      {{ quarter }}
+    </button>
+  </div>
+  <button (click)="goToPrevious()">Previous</button>
+  <button (click)="goToNext()">Next</button>
+  <div class="calendar">
+    <div class="day-header">Mon</div>
+    <div class="day-header">Tue</div>
+    <div class="day-header">Wed</div>
+    <div class="day-header">Thu</div>
+    <div class="day-header">Fri</div>
+    <div class="day-header">Sat</div>
+    <div class="day-header">Sun</div>
+    <div
+      *ngFor="let day of daysInMonth"
+      class="day"
+      [ngStyle]="{ 'background-color': getWeekColor(day) }"
+    >
+      <span>{{ day.getDate() }}</span>
+    </div>
+  </div>
+  
+</div>
