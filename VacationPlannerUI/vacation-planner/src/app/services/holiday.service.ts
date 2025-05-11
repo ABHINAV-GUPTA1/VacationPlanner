@@ -28,14 +28,14 @@ export class HolidayService {
   }
 
   getHolidaysByMonth(year: number, month: number, countryCode: string): Observable<WeekData[]> {
-    const url = `${this.apiUrl}/weeks?countryCode=${countryCode}&year=${year}&month=${month}`;
+    const url = `${this.apiUrl}/data?countryCode=${countryCode}&year=${year}&month=${month}`;
     return this.http.get<WeekData[]>(url, { headers: this.headers }).pipe(
       catchError(this.handleError)
     );
   }
 
   getHolidaysByQuarter(year: number, quarter: number, countryCode: string): Observable<WeekData[]> {
-    const url = `${this.apiUrl}/weeks?countryCode=${countryCode}&year=${year}&quarter=${quarter}`;
+    const url = `${this.apiUrl}/data?countryCode=${countryCode}&year=${year}&quarter=${quarter}`;
     return this.http.get<WeekData[]>(url, { headers: this.headers }).pipe(
       catchError(this.handleError)
     );

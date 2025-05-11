@@ -40,11 +40,13 @@ public class CalendarController {
      * Returns an empty list if no data is found for the given country and year.
      * @throws org.springframework.web.bind.MissingServletRequestParameterException If the {@code countryCode} or {@code year}
      * parameters are not provided in the request.
-     * @see CalendarService#getWeeklyColorMap(String, int)
+     * @see CalendarService#getWeeklyColorMap(String, int, Integer, Integer)
      */
-    @GetMapping("/weeks")
-    public List<WeekInfo> getCalendarWeeks(@RequestParam String countryCode, @RequestParam int year) {
-        return calendarService.getWeeklyColorMap(countryCode, year);
+    @GetMapping("/data")
+    public List<WeekInfo> getCalendarWeeks(@RequestParam String countryCode, @RequestParam int year,
+                                           @RequestParam(required = false) Integer month,
+                                           @RequestParam(required = false) Integer quarter) {
+        return calendarService.getWeeklyColorMap(countryCode, year, month, quarter);
     }
 
     /**

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface CalendarService {
-    List<WeekInfo> getWeeklyColorMap(String countryCode, int year);
 
+    List<WeekInfo> getWeeklyColorMap(String countryCode, int year, Integer month, Integer quarter);
     List<Map<String, String>> getAvailableCountries();
 }

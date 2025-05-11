@@ -1,32 +1,33 @@
 <h2>Vacation Calendar</h2>
 
+<!-- Select Country -->
 <div>
   <label for="country-select">Select Country:</label>
   <div *ngIf="loadingCountries">Loading countries...</div>
   <div *ngIf="countryLoadError" class="error">{{ countryLoadError }}</div>
 
-  <select
-    *ngIf="!loadingCountries && !countryLoadError"
-    id="country-select"
-    [(ngModel)]="selectedCountry"
-    (change)="loadCalendarData()"
-  >
+  <select *ngIf="!loadingCountries && !countryLoadError" id="country-select" [(ngModel)]="selectedCountry"
+    (change)="onCountrySelect(selectedCountry)">
     <option *ngFor="let country of countries" [value]="country.countryCode">
       {{ country.name }}
     </option>
   </select>
 </div>
 
+<!-- Select Year -->
 <div>
-  <button (click)="setView('month')" [class.active]="view === 'month'">
-    Month
-  </button>
-  <button (click)="setView('quarter')" [class.active]="view === 'quarter'">
-    Quarter
-  </button>
+  <label for="year-select">Select Year:</label>
+  <select id="year-select" [(ngModel)]="selectedYear" (change)="onYearSelect(selectedYear)">
+    <option *ngFor="let year of [2021, 2022, 2023, 2024, 2025]" [value]="year">{{ year }}</option>
+  </select>
 </div>
+<button (click)="setView('month')" [class.active]="view === 'month'">Month</button>
+<button (click)="setView('quarter')" [class.active]="view === 'quarter'">Quarter</button>
+<!-- Display Calendar only after Country and Year are selected -->
+<div *ngIf="isCountrySelected && isYearSelected">
 
-<div *ngIf="view === 'month'">
+
+  <div *ngIf="view === 'month'">
   <h3>{{ currentDate | date: 'MMMM yyyy' }}</h3>
   <button (click)="goToPrevious()">Previous</button>
   <button (click)="goToNext()">Next</button>
