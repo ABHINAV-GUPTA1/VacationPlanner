@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs'; // Import throwError
 import { catchError } from 'rxjs/operators';  // Import catchError
-import { WeekData } from '../models/holiday.model';
+import { HolidayDetails } from '../models/holiday.model';
 import { Country } from '../models/countries.model';
 
 @Injectable({
@@ -21,22 +21,22 @@ export class HolidayService {
     return throwError(error);
   }
 
-  getHolidays(): Observable<WeekData[]> {
-    return this.http.get<WeekData[]>(this.apiUrl, { headers: this.headers }).pipe(
+  getHolidays(): Observable<HolidayDetails> {
+    return this.http.get<HolidayDetails>(this.apiUrl, { headers: this.headers }).pipe(
       catchError(this.handleError)
     );
   }
 
-  getHolidaysByMonth(year: number, month: number, countryCode: string): Observable<WeekData[]> {
+  getHolidaysByMonth(year: number, month: number, countryCode: string): Observable<HolidayDetails> {
     const url = `${this.apiUrl}/data?countryCode=${countryCode}&year=${year}&month=${month}`;
-    return this.http.get<WeekData[]>(url, { headers: this.headers }).pipe(
+    return this.http.get<HolidayDetails>(url, { headers: this.headers }).pipe(
       catchError(this.handleError)
     );
   }
 
-  getHolidaysByQuarter(year: number, quarter: number, countryCode: string): Observable<WeekData[]> {
+  getHolidaysByQuarter(year: number, quarter: number, countryCode: string): Observable<HolidayDetails> {
     const url = `${this.apiUrl}/data?countryCode=${countryCode}&year=${year}&quarter=${quarter}`;
-    return this.http.get<WeekData[]>(url, { headers: this.headers }).pipe(
+    return this.http.get<HolidayDetails>(url, { headers: this.headers }).pipe(
       catchError(this.handleError)
     );
   }

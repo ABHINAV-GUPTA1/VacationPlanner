@@ -1,7 +1,10 @@
 package com.vacationcalendar.api.controller;
 
+import com.vacationcalendar.api.dto.HolidayDTO;
 import com.vacationcalendar.api.dto.WeekInfo;
 import com.vacationcalendar.api.service.CalendarService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +26,7 @@ import java.util.Map;
  * </p>
  * @author Abhinav Gupta
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/holidays")
 public class CalendarController {
@@ -43,10 +47,15 @@ public class CalendarController {
      * @see CalendarService#getWeeklyColorMap(String, int, Integer, Integer)
      */
     @GetMapping("/data")
-    public List<WeekInfo> getCalendarWeeks(@RequestParam String countryCode, @RequestParam int year,
-                                           @RequestParam(required = false) Integer month,
-                                           @RequestParam(required = false) Integer quarter) {
-        return calendarService.getWeeklyColorMap(countryCode, year, month, quarter);
+    public HolidayDTO getCalendarWeeks(@RequestParam String countryCode, @RequestParam int year,
+                                       @RequestParam(required = false) Integer month,
+                                       @RequestParam(required = false) Integer quarter) throws BadRequestException {
+        try {
+            return calendarService.getWeeklyColorMap(countryCode, year, month, quarter);
+        } catch (BadRequestException e) {
+            throw new BadRequestException("Bad request");
+        }
+
     }
 
     /**

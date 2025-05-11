@@ -1,10 +1,13 @@
 package com.vacationcalendar.api.service.impl;
 
 import com.vacationcalendar.api.client.HolidayClient;
+import com.vacationcalendar.api.dto.HolidayDTO;
+import com.vacationcalendar.api.dto.HolidayDetails;
 import com.vacationcalendar.api.dto.WeekInfo;
 import com.vacationcalendar.api.model.Holiday;
 import com.vacationcalendar.api.util.WeekColor;
 import com.vacationcalendar.api.service.CalendarService;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -58,43 +61,39 @@ public class CalendarServiceImpl implements CalendarService {
      * Returns an empty list if no holiday data is available or if the country code is invalid.
      */
     @Override
-    public List<WeekInfo> getWeeklyColorMap(String countryCode, int year, Integer month, Integer quarter) {
-        List<WeekInfo> allWeeks = getWeeklyColorMap(countryCode, year);
+    public HolidayDTO getWeeklyColorMap(String countryCode, int year, Integer month, Integer quarter) throws BadRequestException {
+
         List<WeekInfo> result;
 
         if (month != null) {
             // Month view
             LocalDate startOfMonth = LocalDate.of(year, month, 1);
             LocalDate endOfMonth = startOfMonth.withDayOfMonth(startOfMonth.lengthOfMonth());
-            result = allWeeks.stream()
-                    .filter(week -> !week.getEndOfWeek().isBefore(startOfMonth) && !week.getStartOfWeek().isAfter(endOfMonth))
-                    .collect(Collectors.toList());
+            HolidayDTO holidayDTO = getWeeklyColorMap(countryCode, year, startOfMonth, endOfMonth);
+            return  holidayDTO;
         } else if (quarter != null) {
             // Quarter view
             int startMonth = (quarter - 1) * 3 + 1;
             int endMonth = quarter * 3;
             LocalDate startOfQuarter = LocalDate.of(year, startMonth, 1);
             LocalDate endOfQuarter = LocalDate.of(year, endMonth, 1).withDayOfMonth(LocalDate.of(year, endMonth, 1).lengthOfMonth());
-            result = allWeeks.stream()
-                    .filter(week -> !week.getEndOfWeek().isBefore(startOfQuarter) && !week.getStartOfWeek().isAfter(endOfQuarter))
-                    .collect(Collectors.toList());
+            HolidayDTO holidayDTO = getWeeklyColorMap(countryCode, year, startOfQuarter, endOfQuarter);
+            return  holidayDTO;
         } else {
-            // Year view
-            result = allWeeks;
+            throw new BadRequestException("Request Not valid");
         }
-        return result;
     }
 
     /**
      * Calculates the weekly calendar information for a given year,
      * taking into account holidays.
      *
-     * @param holidays A list of {@link Holiday} objects for the year.
+     * @param countryCode country code for fetching the holidays.
      * @param year The year for which to calculate the weekly data.
-     * @return A list of {@link WeekInfo} objects, where each object
+     * @return A {@link HolidayDTO} object, where each object
      * represents a week in the year and its associated color.
      */
-    private List<WeekInfo> getWeeklyColorMap(String countryCode, int year) {
+    private HolidayDTO getWeeklyColorMap(String countryCode, int year, LocalDate startOfDate, LocalDate endOfDate) {
         List<Holiday> holidays = holidayClient.getPublicHolidays(year, countryCode);
 
         Map<Integer, List<LocalDate>> weekMap = new HashMap<>();
@@ -116,13 +115,14 @@ public class CalendarServiceImpl implements CalendarService {
             weekMap.put(week, List.of(start, end));
         }
 
-        return weekMap.entrySet().stream()
+        List<WeekInfo> weekInfoList = weekMap.entrySet().stream()
                 .map(entry -> {
                     LocalDate s = entry.getValue().get(0);
                     LocalDate e = entry.getValue().get(1);
                     long holidayCount = holidays.stream()
                             .map(Holiday::getDate)
-                            .filter(d -> !d.getDayOfWeek().equals(DayOfWeek.SATURDAY) && !d.getDayOfWeek().equals(DayOfWeek.SUNDAY))
+                            .filter(d -> !d.getDayOfWeek().equals(DayOfWeek.SATURDAY)
+                                        && !d.getDayOfWeek().equals(DayOfWeek.SUNDAY))
                             .filter(d -> !d.isBefore(s) && !d.isAfter(e))
                             .count();
 
@@ -131,8 +131,15 @@ public class CalendarServiceImpl implements CalendarService {
                     else if (holidayCount >= 2) color = WeekColor.DARK_GREEN;
 
                     return new WeekInfo(s, e, color);
-                })
+                }).filter(week -> !week.getEndOfWeek().isBefore(startOfDate) && !week.getStartOfWeek().isAfter(endOfDate))
                 .collect(Collectors.toList());
+        List<HolidayDetails> holidayDetailsList = holidays.stream()
+                .filter(d -> !d.getDate().getDayOfWeek().equals(DayOfWeek.SATURDAY)
+                        && !d.getDate().getDayOfWeek().equals(DayOfWeek.SUNDAY))
+                .filter(d -> !d.getDate().isBefore(startOfDate) && !d.getDate().isAfter(endOfDate))
+                .map(obj -> new HolidayDetails(obj.getName(), obj.getDate()))
+                .collect(Collectors.toList());
+        return new HolidayDTO(weekInfoList, holidayDetailsList);
     }
 
     /**

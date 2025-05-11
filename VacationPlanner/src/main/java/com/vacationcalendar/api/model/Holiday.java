@@ -42,6 +42,14 @@ public class Holiday {
     private String localName;
 
     /**
+     * The name of the holiday.
+     * <p>
+     * This is a {@link String} representing the name of the holiday.
+     * </p>
+     */
+    private String name;
+
+    /**
      * The ISO 3166-1 alpha-2 country code for the holiday.
      * <p>
      * This is a {@link String} representing the two-letter country code (e.g., "US", "DE", "FR").

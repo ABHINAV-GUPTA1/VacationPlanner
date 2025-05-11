@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HolidayService } from '../services/holiday.service';
 import { DatePipe } from '@angular/common';
 import { Country } from '../models/countries.model';
-import { WeekData } from '../models/holiday.model';
+import { WeekData, HolidayDetailsList, HolidayDetails } from '../models/holiday.model';
 
 @Component({
   selector: 'app-calendar',
@@ -12,8 +12,10 @@ import { WeekData } from '../models/holiday.model';
 })
 export class CalendarComponent implements OnInit {
   currentDate: Date = new Date();
+  calendars: Date[][] = [[], [], []];
   daysInMonth: Date[] = [];
   weekData: WeekData[] = [];
+  holidayList: HolidayDetailsList[] = [];
   view: 'month' | 'quarter' = 'month';
   selectedQuarter: number = this.getCurrentQuarter();
   selectedYear: number = this.currentDate.getFullYear();
@@ -38,6 +40,9 @@ export class CalendarComponent implements OnInit {
     'November',
     'December',
   ];
+
+   private holidayMap: { [date: string]: string } = {};
+   private holidayColor: {[date: string]: string} = {};
 
   constructor(private holidayService: HolidayService, private datePipe: DatePipe) {}
 
@@ -85,16 +90,20 @@ export class CalendarComponent implements OnInit {
         this.generateMonthView();
         this.holidayService
           .getHolidaysByMonth(this.selectedYear, this.currentDate.getMonth() + 1, this.selectedCountry)
-          .subscribe((weekData) => {
-            this.weekData = weekData;
+          .subscribe((holidayDetails) => {
+            this.weekData = holidayDetails.weekInfoList;
+            this.holidayList = holidayDetails.holidayDetailsList;
+            this.updateHolidayMap();
             this.generateMonthView(); // regenerate to apply colors.
           });
       } else if (this.view === 'quarter') {
         this.generateQuarterView();
         this.holidayService
           .getHolidaysByQuarter(this.selectedYear, this.selectedQuarter, this.selectedCountry)
-          .subscribe((weekData) => {
-            this.weekData = weekData;
+          .subscribe((holidayDetails) => {
+            this.weekData = holidayDetails.weekInfoList;
+            this.holidayList = holidayDetails.holidayDetailsList;
+            this.updateHolidayMap();
             this.generateQuarterView();
           });
       }
@@ -142,26 +151,83 @@ export class CalendarComponent implements OnInit {
     //     this.daysInMonth.push(new Date(year, month, day));
     //   }
     // }
-    this.daysInMonth = [];
+
+
+    // this.daysInMonth = [];
+    // let startMonth = (this.selectedQuarter - 1) * 3;
+    // for (let i = 0; i < 3; i++) {
+    //   const year = this.selectedYear;
+    //   const month = startMonth + i;
+    //   const firstDayOfMonth = new Date(year, month, 1);
+    //   const lastDayOfMonth = new Date(year, month + 1, 0);
+    //   const monthName = this.monthNames[month];
+    //   const firstDayOfWeek = firstDayOfMonth.getDay();
+    //   const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+
+    //   if (i > 0) {
+    //     for (let j = 0; j < paddingDays; j++) {
+    //       this.daysInMonth.push(new Date(year, month, -paddingDays + j));
+    //     }
+    //   }
+    //   this.daysInMonth.push(new Date(year, month, -1)); // Month separator
+    //   this.daysInMonth.push(new Date(year, month, 0));
+    //   for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+    //     this.daysInMonth.push(new Date(year, month, day));
+    //   }
+    // }
+
+
+    // this.calendars = [[], [], []];
+    // let startMonth = (this.selectedQuarter - 1) * 3;
+    // for (let i = 0; i < 3; i++) {
+    //   const year = this.selectedYear;
+    //   const month = startMonth + i;
+    //   const firstDayOfMonth = new Date(year, month, 1);
+    //   const lastDayOfMonth = new Date(year, month + 1, 0);
+    //   const monthName = this.monthNames[month];
+    //   const firstDayOfWeek = firstDayOfMonth.getDay();
+    //   const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+
+    //   if (i > 0) {
+    //     for (let j = 0; j < paddingDays; j++) {
+    //       this.calendars[i].push(new Date(year, month, -paddingDays + j));
+    //     }
+    //   }
+    //   // this.calendars[i].push(new Date(year, month, -1)); // Month separator
+    //   // this.calendars[i].push(new Date(year, month, 0));
+    //   for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+    //     this.calendars[i].push(new Date(year, month, day));
+    //   }
+    // }
+
+
+    this.calendars = [[], [], []];
     let startMonth = (this.selectedQuarter - 1) * 3;
+
     for (let i = 0; i < 3; i++) {
       const year = this.selectedYear;
       const month = startMonth + i;
       const firstDayOfMonth = new Date(year, month, 1);
       const lastDayOfMonth = new Date(year, month + 1, 0);
-      const monthName = this.monthNames[month];
       const firstDayOfWeek = firstDayOfMonth.getDay();
       const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
-      if (i > 0) {
-        for (let j = 0; j < paddingDays; j++) {
-          this.daysInMonth.push(new Date(year, month, -paddingDays + j));
-        }
+      // Add padding days before the 1st of the month
+      for (let j = 0; j < paddingDays; j++) {
+        const padDate = new Date(year, month, 1 - paddingDays + j);
+        this.calendars[i].push(padDate);
       }
-      this.daysInMonth.push(new Date(year, month, -1)); // Month separator
-      this.daysInMonth.push(new Date(year, month, 0));
+
+      // Add actual days of the month
       for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
-        this.daysInMonth.push(new Date(year, month, day));
+        this.calendars[i].push(new Date(year, month, day));
+      }
+
+      // Optional: Pad at the end to fill up the final week (ensure 7xN grid)
+      const totalDays = this.calendars[i].length;
+      const remaining = totalDays % 7 === 0 ? 0 : 7 - (totalDays % 7);
+      for (let j = 1; j <= remaining; j++) {
+        this.calendars[i].push(new Date(year, month + 1, j));
       }
     }
   }
@@ -211,32 +277,61 @@ export class CalendarComponent implements OnInit {
     return Math.floor(month / 3) + 1;
   }
 
-  getWeekColor(date: Date): string {
+  getWeekColor(date: Date, isIncReq: boolean): string {
     const formattedDate = this.datePipe.transform(date, 'yyyy-MM-dd');
-    if (this.isWeekend(date)) {
+    if (this.isWeekend(date, isIncReq)) {
       return 'lightgray';
     }
+    // console.log(formattedDate+" "+date.getDay());
+    if (this.holidayColor[formattedDate] || false) {
+      const weekColor = (this.holidayColor[formattedDate] || 'white').toLowerCase();
+      
+      if (weekColor === 'light_green') { //keep underscore to handle the data
+            // console.log(weekColor+" "+date);
+        return 'lightgreen';
+      } else if (weekColor === 'white') {
+        return 'white';
+      } else if (weekColor === 'dark_green') {
+        return 'darkgreen';
+      }
+    }
+
+    return 'white';
+  }
+
+  isWeekend(date: Date, isIncReq: boolean): boolean {
+    let day = date.getDay();
+    
+    return (day === 0 || day === 6); // 0 for Sunday, 6 for Saturday
+  }
+
+  getHolidayName(date: Date): string | null {
+    const formattedDate = this.datePipe.transform(date, 'yyyy-MM-dd');
+    return this.holidayMap[formattedDate] || null;
+  }
+
+  private updateHolidayMap(): void {
+    this.holidayMap = {};
+    if (this.holidayList) {
+      this.holidayList.forEach((holiday) => {
+        const startDate = new Date(holiday.date);
+        const formattedDate = this.datePipe.transform(startDate, 'yyyy-MM-dd');
+        this.holidayMap[formattedDate] = holiday.name;
+      });
+    }
+    this.holidayColor = {};
     if (this.weekData) {
       for (const week of this.weekData) {
         const startDate = new Date(week.startOfWeek);
         const endDate = new Date(week.endOfWeek);
-        if (date >= startDate && date <= endDate) {
-          const weekColor = week.color.toLowerCase();
-          if (weekColor === 'light_green') { //keep underscore to handle the data
-            return 'lightgreen';
-          } else if (weekColor === 'white') {
-            return 'white';
+        for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
+          if (week.color) {
+            const formattedDate = this.datePipe.transform(date, 'yyyy-MM-dd');
+            this.holidayColor[formattedDate] = week.color;
           }
-          return weekColor; // Or return the original if it's a custom color
         }
       }
     }
-    return 'white';
-  }
-
-  isWeekend(date: Date): boolean {
-    const day = date.getDay();
-    return day === 0 || day === 6; // 0 for Sunday, 6 for Saturday
   }
 
 }
