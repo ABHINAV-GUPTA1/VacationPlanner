@@ -42,6 +42,7 @@ export class CalendarComponent implements OnInit {
   ];
 
    private holidayMap: { [date: string]: string } = {};
+   private holidayLinkMap: {[date: string]: string} = {};
    private holidayColor: {[date: string]: string} = {};
 
   constructor(private holidayService: HolidayService, private datePipe: DatePipe) {}
@@ -310,6 +311,12 @@ export class CalendarComponent implements OnInit {
     return this.holidayMap[formattedDate] || null;
   }
 
+  getHolidayLink(date: Date) : string {
+    const formattedDate = this.datePipe.transform(date, 'yyyy-MM-dd');
+    return this.holidayLinkMap[formattedDate] || null;
+  }
+
+
   private updateHolidayMap(): void {
     this.holidayMap = {};
     if (this.holidayList) {
@@ -317,6 +324,7 @@ export class CalendarComponent implements OnInit {
         const startDate = new Date(holiday.date);
         const formattedDate = this.datePipe.transform(startDate, 'yyyy-MM-dd');
         this.holidayMap[formattedDate] = holiday.name;
+        this.holidayLinkMap[formattedDate] = holiday.url;
       });
     }
     this.holidayColor = {};

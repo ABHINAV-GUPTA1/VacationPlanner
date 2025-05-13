@@ -7,6 +7,7 @@ export interface WeekData {
 export interface HolidayDetailsList {
   name: string;
   date: string;
+  url: string;
 }
 export interface HolidayDetails {
   weekInfoList: WeekData[];

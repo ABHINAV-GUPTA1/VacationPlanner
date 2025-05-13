@@ -24,4 +24,9 @@ public class HolidayDetails {
      * The date of the holiday.
      */
     private LocalDate date;
+
+    /**
+     * The url of the holiday
+     */
+    private String url;
 }

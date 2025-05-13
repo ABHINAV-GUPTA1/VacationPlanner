@@ -64,8 +64,10 @@
         >
           {{ day.getDate() }}
         </span>
-        <div *ngIf="getHolidayName(day)" class="holiday-name" [title]="getHolidayName(day) ? getHolidayName(day) : ''">
+        <div *ngIf="getHolidayName(day)" class="holiday-name" [title]="getHolidayName(day) ? getHolidayName(day) : ''" >
+          <a [href]="getHolidayLink(day)" target="_blank">
           {{ getHolidayName(day) }}
+          </a>
         </div>
       </div>
     </div>
@@ -105,7 +107,9 @@
         >
           <span>{{ day.getDate() }}</span>
           <div *ngIf="getHolidayName(day)" class="holiday-name" [title]="getHolidayName(day) ? getHolidayName(day) : ''">
+          <a [href]="getHolidayLink(day)" target="_blank">
           {{ getHolidayName(day) }}
+          </a>
         </div>
         </div>
       </div>
